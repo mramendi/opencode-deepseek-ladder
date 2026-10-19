@@ -11,7 +11,13 @@ without the calling agent ever seeing a failure or a mid-thread model change.
   resolved **fresh from environment variables at failure time**. Swapping the
   paid provider is a one-line env edit — no config, no restart, no code.
 
-**experimental** - the code is not human-reviewed. Use with caution.
+**experimental** - the code is not fully human-reviewed. Use with caution.
+Released into the public domain under the Unlicense - I am not joining the
+debate on whether AI-generated code is copyrightable. Do whatever you want
+with this code but beware; I recommend getting your own trusted model to
+review it for you. ("I" = Misha Ramendik <mr@ramendik.eu> , the code was 
+made in OpenCode with GLM 5.3 Flash and DeepSeek 4.1 Flash; I don't really
+understand TypeScript so human review was cursory).
 
 ## What it does
 
