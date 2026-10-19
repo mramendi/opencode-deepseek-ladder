@@ -34,10 +34,12 @@ OpenAI-compatible framing). Anything else — a plain-JSON 200, a non-200, a
 network error — is refused and the *original* response/failure is passed
 through unchanged. The ladder is single-layer; there is no rung 3.
 
-**Scope guard:** hooks fire only for `primary` model requests addressed to
-`opencode`-provider models whose id matches `deepseek*-free`. Other agents,
-kinds (title/compaction), providers, and free SKUs (other model families)
-are invisible to it.
+**Scope guard:** hooks fire only for `primary` (agent turns) and `compaction`
+(autocompact failure is session-fatal) model requests addressed to
+`opencode`-provider models whose id matches `deepseek*-free`. Title
+generation, other kinds, other agents, providers, and free SKUs (other model
+families) are invisible to it — title 2xx must not touch burst state, and a
+failed title is cosmetic rather than fatal.
 
 ## Requirements
 

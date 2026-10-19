@@ -283,7 +283,14 @@ async function engage(
 
 async function evaluate(event: any): Promise<void> {
   const model = modelParts(event?.model)
-  if (event?.kind !== "primary" || !/^deepseek.*-free$/.test(model.id)) return
+  // Engage kinds: primary (agent turns) + compaction (autocompact failure is
+  // session-fatal). Title/generate stay out: cosmetic, and title 2xx must not
+  // touch burst state.
+  if (
+    (event?.kind !== "primary" && event?.kind !== "compaction") ||
+    !/^deepseek.*-free$/.test(model.id)
+  )
+    return
 
   const started = Date.now()
   const base: Record<string, unknown> = {
