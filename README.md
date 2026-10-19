@@ -11,6 +11,8 @@ without the calling agent ever seeing a failure or a mid-thread model change.
   resolved **fresh from environment variables at failure time**. Swapping the
   paid provider is a one-line env edit — no config, no restart, no code.
 
+**experimental** - the code is not human-reviewed. Use with caution.
+
 ## What it does
 
 The plugin hooks OpenCode's `http.response` event, scoped to the `opencode`
@@ -40,6 +42,40 @@ through unchanged. The ladder is single-layer; there is no rung 3.
 generation, other kinds, other agents, providers, and free SKUs (other model
 families) are invisible to it — title 2xx must not touch burst state, and a
 failed title is cosmetic rather than fatal.
+
+## Error handling
+
+The plugin sits between the response and OpenCode's own error handling, and
+every path ends in exactly one of two states:
+
+- **Replaced** — the engage succeeded; the runner consumes the paid lane's
+  stream and never sees the original failure.
+- **Passed through** — the original response is left untouched and
+  OpenCode's built-in machinery owns it: retryable 429/5xx get the built-in
+  retry loop, non-retryable quota errors surface to the caller as usual.
+
+The hook can never itself break a model request: the whole evaluation is
+blanket-caught, any internal error leaves the event untouched, and one
+`plugin-error` receipt line is written to the log.
+
+**Paid-lane failures surface the *original* error — by design.** All five
+rung-2 failure paths (unresolvable env config, unreadable request body,
+network error / header timeout, non-200 from the paid endpoint, 200 with a
+non-SSE content type) log a receipt line and then restore the original
+response, so the free lane's failure flows into OpenCode's normal handling
+unchanged. There is no retry of the paid lane and no rung 3: if the paid
+lane is also down, you see the error you would have seen without the
+plugin. Acceptable and intended — a ladder should not paper over two dead
+lanes at once.
+
+Once a swap succeeds, the plugin is out of the picture: a paid stream that
+breaks *mid-body* surfaces as an ordinary transport error, the same class
+as any provider stream break.
+
+Failures of requests the plugin never evaluates (title generation, other
+model families, other providers) are likewise handled entirely by
+OpenCode — a failed title is cosmetic — and leave no trace in the ladder
+log.
 
 ## Requirements
 
