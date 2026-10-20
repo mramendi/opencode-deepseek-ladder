@@ -125,6 +125,21 @@ That's it. The values are re-read from the environment on **every** engage,
 so rotating keys or swapping providers takes effect on the next failure with
 zero restarts.
 
+### Using OpenCode Go as rung 2
+
+The paid rung can point at OpenCode's own Go endpoint (e.g. the paid
+`deepseek-v4.1-flash` SKU). The plugin detects the `opencode.ai` host and
+automatically forwards the original request's `user-agent` and
+`x-opencode-session` — the documented client-identity pair the Go endpoint
+requires (the same combination OpenCode's own traffic carries). Identity
+headers are **not** forwarded to any third-party host.
+
+```sh
+export PAID_DS_BASE_URL="https://opencode.ai/inference/go/v1"
+export PAID_DS_API_KEY="<console service key>"
+export PAID_DS_MODEL="deepseek-v4.1-flash"
+```
+
 ## Self-test
 
 The plugin supports a sentinel file for deterministic validation (no real

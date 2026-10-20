@@ -219,16 +219,41 @@ async function engage(
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), HEADER_TIMEOUT_MS)
 
+  // Header policy: a Go-endpoint rung (host opencode.ai) requires the
+  // documented client identity — coding-agent UA + x-opencode-session.
+  // Forward the ORIGINAL request's values verbatim (always fresh, the
+  // session's own identity; litellm's static-mimic precedent proves the
+  // pair sufficient). Third-party rungs get the generic set only — no
+  // OpenCode identity leaves the box to third parties.
+  const headers: Record<string, string> = {
+    authorization: `Bearer ${rung.apiKey}`,
+    "content-type": "application/json",
+    accept: "text/event-stream, application/json",
+    "user-agent": USER_AGENT,
+  }
+  if (/(^|\.)opencode\.ai$/.test(rung.host)) {
+    const sessionID = String(event?.sessionID ?? "")
+    try {
+      const src = event?.request?.headers
+      if (src && typeof src.get === "function") {
+        const ua = src.get("user-agent")
+        const ses = src.get("x-opencode-session")
+        if (ua) headers["user-agent"] = ua
+        if (ses) headers["x-opencode-session"] = ses
+        else if (sessionID) headers["x-opencode-session"] = sessionID
+      } else if (sessionID) {
+        headers["x-opencode-session"] = sessionID
+      }
+    } catch {
+      if (sessionID) headers["x-opencode-session"] = sessionID
+    }
+  }
+
   let fetched: Response
   try {
     fetched = await fetch(url, {
       method: "POST",
-      headers: {
-        authorization: `Bearer ${rung.apiKey}`,
-        "content-type": "application/json",
-        accept: "text/event-stream, application/json",
-        "user-agent": USER_AGENT,
-      },
+      headers,
       body: outgoing,
       signal: controller.signal,
     })
