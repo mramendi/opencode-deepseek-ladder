@@ -219,12 +219,11 @@ async function engage(
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), HEADER_TIMEOUT_MS)
 
-  // Header policy: a Go-endpoint rung (host opencode.ai) requires the
-  // documented client identity — coding-agent UA + x-opencode-session.
-  // Forward the ORIGINAL request's values verbatim (always fresh, the
-  // session's own identity; litellm's static-mimic precedent proves the
-  // pair sufficient). Third-party rungs get the generic set only — no
-  // OpenCode identity leaves the box to third parties.
+  // Header policy (Support contract): requests to opencode.ai hosts need
+  // x-opencode-session with a stable per-conversation id — forwarded from
+  // the original request (fallback: the event's own sessionID). The UA is
+  // ALWAYS the plugin's own self-identifying agent name (Support: "the
+  // client should identify itself with its own user agent") — no mimicry.
   const headers: Record<string, string> = {
     authorization: `Bearer ${rung.apiKey}`,
     "content-type": "application/json",
@@ -236,9 +235,7 @@ async function engage(
     try {
       const src = event?.request?.headers
       if (src && typeof src.get === "function") {
-        const ua = src.get("user-agent")
         const ses = src.get("x-opencode-session")
-        if (ua) headers["user-agent"] = ua
         if (ses) headers["x-opencode-session"] = ses
         else if (sessionID) headers["x-opencode-session"] = sessionID
       } else if (sessionID) {

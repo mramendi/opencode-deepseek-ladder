@@ -129,10 +129,11 @@ zero restarts.
 
 The paid rung can point at OpenCode's own Go endpoint (e.g. the paid
 `deepseek-v4.1-flash` SKU). The plugin detects the `opencode.ai` host and
-automatically forwards the original request's `user-agent` and
-`x-opencode-session` — the documented client-identity pair the Go endpoint
-requires (the same combination OpenCode's own traffic carries). Identity
-headers are **not** forwarded to any third-party host.
+automatically adds the required `x-opencode-session` header — the stable
+per-conversation id, taken from the original request (fallback: the
+event's session id). The `user-agent` stays the plugin's own
+self-identifying name on every host, per the client-identification
+contract; no identity headers are forwarded to third-party hosts.
 
 ```sh
 export PAID_DS_BASE_URL="https://opencode.ai/inference/go/v1"
