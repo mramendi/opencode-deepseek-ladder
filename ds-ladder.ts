@@ -36,12 +36,22 @@ import { promisify } from "node:util"
 const execFileAsync = promisify(execFile)
 
 // ---------------------------------------------------------------- constants
+// SECRETS_FILE: optional secrets file sourced before resolving the rung.
+// Customize freely (or set PAID_DS_* directly in OpenCode's environment and
+// point this at a nonexistent path — see resolve() for the fallback).
+// SENTINEL_FILE: validation-only forced-engage marker (see README, "Self-test").
 
 const HOME = homedir()
 const LOG_FILE = path.join(HOME, ".local/share/opencode/ds-ladder.log")
 const SENTINEL_FILE = "/srv/ssd/tmp/opencode/ds-ladder-selftest"
-const SECRETS_SCRIPT =
-  'source ~/.config/ai/load-secrets.sh >/dev/null 2>&1; printf "%s\\x1f%s\\x1f%s" "$PAID_DS_BASE_URL" "$PAID_DS_API_KEY" "$PAID_DS_MODEL"'
+const SECRETS_FILE = path.join(HOME, ".config/ai/load-secrets.sh")
+
+function secretsScript(): string {
+  const source = existsSync(SECRETS_FILE)
+    ? `source '${SECRETS_FILE}' >/dev/null 2>&1;`
+    : "" // file absent/unreadable: no error — ambient environment is the source
+  return `${source} printf "%s\\x1f%s\\x1f%s" "$PAID_DS_BASE_URL" "$PAID_DS_API_KEY" "$PAID_DS_MODEL"`
+}
 
 const R1_MESSAGE_RE = /free usage|free tier|quota|exceeded|limit/i
 
@@ -114,7 +124,7 @@ interface Rung2 {
 
 // Always resolved fresh (never cached between attempts).
 async function resolveRung2(): Promise<Rung2 | null> {
-  const { stdout } = await execFileAsync("bash", ["-lc", SECRETS_SCRIPT], {
+  const { stdout } = await execFileAsync("bash", ["-lc", secretsScript()], {
     timeout: 15_000,
     maxBuffer: 65_536,
   })

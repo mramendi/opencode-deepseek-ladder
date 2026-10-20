@@ -121,6 +121,14 @@ log.
    including** `/chat/completions`. `PAID_DS_MODEL` is used verbatim as the
    `model` field on the wire.
 
+   The secrets file is optional: the path is the visible `SECRETS_FILE`
+   constant at the top of the plugin (default
+   `~/.config/ai/load-secrets.sh`), and **if the file is absent or
+   unreadable there is no error** — the ambient environment of the
+   OpenCode process is used instead. Point the constant at your own
+   secrets file, or set `PAID_DS_*` directly in OpenCode's environment
+   and skip the file entirely.
+
 That's it. The values are re-read from the environment on **every** engage,
 so rotating keys or swapping providers takes effect on the next failure with
 zero restarts.
