@@ -11,6 +11,12 @@ without the calling agent ever seeing a failure or a mid-thread model change.
   resolved **fresh from environment variables at failure time**. Swapping the
   paid provider is a one-line env edit — no config, no restart, no code.
 
+  **IMPORTANT:** failing over to another OpenCode key to bypass free model
+  limits is against the TOS and also **will not work**, because the second
+  rung is a direct OpenAI call that free Zen endpoints will reject. Failong
+  over to OpenCode Go should work, in theory.
+
+
 **experimental** - the code is not fully human-reviewed. Use with caution.
 Released into the public domain under the Unlicense - I am not joining the
 debate on whether AI-generated code is copyrightable. Do whatever you want
