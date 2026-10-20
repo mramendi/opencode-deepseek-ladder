@@ -127,7 +127,9 @@ log.
    unreadable there is no error** — the ambient environment of the
    OpenCode process is used instead. Point the constant at your own
    secrets file, or set `PAID_DS_*` directly in OpenCode's environment
-   and skip the file entirely.
+   and skip the file entirely; however, using a secrets file ensures that 
+   any change in these varialbes is picked up by the plugin immediately, 
+   without restarting any OpenCode components or services.
 
 That's it. The values are re-read from the environment on **every** engage,
 so rotating keys or swapping providers takes effect on the next failure with
